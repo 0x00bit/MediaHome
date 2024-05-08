@@ -17,10 +17,15 @@ class Server:
             username = self.db.Column(self.db.String(40), nullable=False)
             password = self.db.Column(self.db.String(80), nullable=False)
 
+        self.def_adm = User(username='admin', password='admin')
+
     def create_database(self):
         with self.app.app_context():
             self.db.create_all()
             print("[Info]: Database was created!")
+            self.db.session.add(self.def_adm)
+            self.db.session.commit()
+            print("[Info]: Default credentials were added!")
 
     def create_server(self):
         '''
@@ -36,7 +41,7 @@ class Server:
             if request.method == 'POST':
                 self.username = request.form['username']
                 self.password = request.form['password']
-                return self.username, self.password
+
             elif request.method == 'GET':
                 return render_template('login.html')
             else:
