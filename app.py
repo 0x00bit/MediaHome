@@ -1,55 +1,55 @@
 #!/bin/bash python3
-from flask import Flask, render_template, request
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, render_template, request, session, redirect
+from smbmodule import SmbConnection
+from smbprotocol import exceptions as ex
 
 
 class Server:
     '''
     Main class, responsible for instantiating the server and database
     '''
-    def __init__(self) -> None:
+    def __init__(self):
         self.app = Flask(__name__, template_folder='./templates/')
-        self.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mediahome.db'
-        self.db = SQLAlchemy(self.app)
-
-        class User(self.db.Model):
-            id = self.db.Column(self.db.Integer, primary_key=True)
-            username = self.db.Column(self.db.String(40), nullable=False)
-            password = self.db.Column(self.db.String(80), nullable=False)
-
-        self.def_adm = User(username='admin', password='admin')
-
-    def create_database(self):
-        with self.app.app_context():
-            self.db.create_all()
-            print("[Info]: Database was created!")
-            self.db.session.add(self.def_adm)
-            self.db.session.commit()
-            print("[Info]: Default credentials were added!")
+        self.smb_server = SmbConnection('127.0.0.1')
+        self.session = None
+        self.app.secret_key = "cookedpotatos"
 
     def create_server(self):
         '''
         This function is responsable for creating and
         setup whole server
         '''
-        @self.app.route('/')
+        @self.app.route('/', methods=['GET', 'POST'])
         def home():
-            return "hello!"
+            return render_template('index.html'), 200
 
         @self.app.route('/login', methods=['GET', 'POST'])
         def login_page():
             if request.method == 'POST':
                 self.username = request.form['username']
                 self.password = request.form['password']
+                self.smb_server._user = self.username
+                self.smb_server._passwd = self.password
+                try:
+                    smb_session = self.smb_server.start_conn()
+                    if smb_session._connected is True:
+                        session["username"] = self.username
+                        return redirect("/user", code=302)
+                    else:
+                        print(smb_session._connected)
+                        print(smb_session)
 
-            elif request.method == 'GET':
-                return render_template('login.html')
+                except ex.SMBException:
+                    return render_template('bad_login.html'), 401
+
+            return render_template('login.html')
+
+        @self.app.route('/user', methods=['GET', 'POST'])
+        def home_user():
+            if "username" in session:
+                self.username = session["username"]
+                return render_template('dir_list.html'), 200
             else:
-                pass
+                return render_template('bad_login.html'), 401
 
-        return self.app.run(debug=False)
-
-
-server = Server()
-server.create_database()
-server.create_server()
+        return self.app.run(host='localhost', debug=False)
