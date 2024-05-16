@@ -23,6 +23,6 @@ class SmbConnection:
         """List all files on some folder"""
         dirs = self.smb.listdir(f"{self._server}/{folder}")
         if len(dirs) > 0:
-            print(f'Files: {dirs}')
+            return dirs
         else:
-            print('Empty directory')
+            return None
