@@ -50,12 +50,10 @@
 {% block body %}
 <div class="container">
     <h1>Index of /</h1>
-    <ul>
-      <li><a href="#">Folder 1</a></li>
-      <li><a href="#">Folder 2</a></li>
-      <li><a href="#">File 1.txt</a></li>
-      <li><a href="#">File 2.jpg</a></li>
-      <li><a href="#">File 3.pdf</a></li>
+    <ul id="file-list">
+        {% for file in files_dir %}
+        <li><a href="#">{{ file }}</a></li>
+        {% endfor %}
     </ul>
-  </div>
+</div>
 {% endblock %}
