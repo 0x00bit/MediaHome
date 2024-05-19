@@ -25,6 +25,15 @@ class Server:
             path = f'{self.smb_server._server}/{self.smb_server._user}/{file}'
             self.smb_server.delete_file(path)
 
+        def _rename_file(old_path, new_name):
+            old_file = f'///{self.smb_server._server}/{self.smb_server._user}/{old_path}'
+            new_file = f'///{self.smb_server._server}/{self.smb_server._user}/{new_name}'
+            self.smb_server.rename_file(old_file, new_file)
+
+        def _download_file(filename):
+            path = f'{self.smb_server._server}/{self.smb_server._user}/{filename}'
+            self.smb_server.download_file(path)
+
         @self.app.route('/', methods=['GET', 'POST'])
         def home():
             return render_template('index.html'), 200
@@ -81,6 +90,12 @@ class Server:
                         file_to_del = request.get_json('filename')
                         _delete_file(file_to_del['filename'])
 
+                    # Renaming file and folders on smb server
+                    if request.method == 'POST' and request.get_json('rename'):
+                        file_name = request.get_json('filename')
+                        new_name = request.get_json('rename')
+                        _rename_file(file_name['filename'], new_name['rename'])
+
                     return render_template('dir_list.html',
                                            files_dir=all_files), 200
                 else:
@@ -90,3 +105,7 @@ class Server:
                 return render_template('bad_login.html'), 401
 
         return self.app.run(host='localhost', debug=False)
+
+
+server = Server()
+server.create_server()

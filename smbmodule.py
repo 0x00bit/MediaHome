@@ -39,18 +39,29 @@ class SmbConnection:
                         raise e
             return self.dirs, self.files
 
-    def delete_file(self, path):
+    def delete_file(self, file_to_del):
         try:
-            self.smb.remove(path)
-            return f'File: {path} was removed'
+            self.smb.remove(file_to_del)
+            return f'File: {file_to_del} was removed'
 
         except ex.SMBOSError as e:
             if e.errno == 21:  # Erro 21 means directory
-                self.smb.removedirs(path)
-                directory = path.split('/')[-1]  # Get directory name
+                self.smb.removedirs(file_to_del)
+                directory = file_to_del.split('/')[-1]  # Get directory name
                 return f'Folder {directory} was removed'
             else:
                 raise e
 
         except ex.exceptions.NotFound:
             return "File not Found"
+
+    def rename_file(self, old_file, new_file):
+        try:
+            self.smb.rename(old_file, new_file)
+            return f'File renamed to {new_file}'
+
+        except ex.SMBOSError as e:
+            raise e
+
+        except ex.NotFound:
+            return "File not found"
