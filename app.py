@@ -21,6 +21,10 @@ class Server:
         setup whole server
         '''
 
+        def _delete_file(file):
+            path = f'{self.smb_server._server}/{self.smb_server._user}/{file}'
+            self.smb_server.delete_file(path)
+
         @self.app.route('/', methods=['GET', 'POST'])
         def home():
             return render_template('index.html'), 200
@@ -58,20 +62,31 @@ class Server:
             return render_template('login.html')
 
         # Default page of user directory
-        @self.app.route('/home/<user>', methods=['GET', 'POST'])
+        @self.app.route('/home/<user>', methods=['GET', 'POST', 'DELETE'])
         def home_user(user):
-            # If user session exist, save the session in class and return HTML page
+
+            # If user session exist, save the session in
+            # class and return HTML page
+
             if self.smb_server._user in session:
                 self.session = session[self.smb_server._user]
-                print(self.smb_server._user)
-                directory_files = self.smb_server.list_files(self.smb_server._user)
-                # If the list of directory doesn't return None, show the normal page with files
-                if type(directory_files) != None:
-                    return render_template('dir_list.html', files_dir=directory_files), 200
+
+                if self.smb_server.list_files(self.smb_server._user) is not None:
+                    dirs, files = self.smb_server.list_files(self.smb_server._user)
+
+                    all_files = [*dirs, *files]
+
+                    # Deleting file and folders on smb server
+                    if request.method == 'DELETE':
+                        file_to_del = request.get_json('filename')
+                        _delete_file(file_to_del['filename'])
+
+                    return render_template('dir_list.html',
+                                           files_dir=all_files), 200
                 else:
                     return render_template('dir_list.html'), 200
+
             else:
                 return render_template('bad_login.html'), 401
 
         return self.app.run(host='localhost', debug=False)
-    

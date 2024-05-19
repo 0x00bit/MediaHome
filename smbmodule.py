@@ -1,4 +1,5 @@
 import smbclient
+from smbprotocol import exceptions as ex
 
 
 class SmbConnection:
@@ -20,9 +21,36 @@ class SmbConnection:
         return self.smb.register_session(_server, _user, _passwd)
 
     def list_files(self, folder):
+        self.dirs = []
+        self.files = []
         """List all files on some folder"""
         dirs = self.smb.listdir(f"{self._server}/{folder}")
         if len(dirs) > 0:
-            print(f'Files: {dirs}')
-        else:
-            print('Empty directory')
+            items = self.smb.listdir(f"{self._server}/{folder}")
+            for item in items:
+                try:
+                    self.smb.walk(f"{self._server}/{folder}/{item}")
+                    self.dirs.append(item)
+
+                except ex.SMBOSError as e:
+                    if e.errno == 20: 
+                        self.files.append(item)
+                    else:
+                        raise e
+            return self.dirs, self.files
+
+    def delete_file(self, path):
+        try:
+            self.smb.remove(path)
+            return f'File: {path} was removed'
+
+        except ex.SMBOSError as e:
+            if e.errno == 21:  # Erro 21 means directory
+                self.smb.removedirs(path)
+                directory = path.split('/')[-1]  # Get directory name
+                return f'Folder {directory} was removed'
+            else:
+                raise e
+
+        except ex.exceptions.NotFound:
+            return "File not Found"
