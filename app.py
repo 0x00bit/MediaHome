@@ -105,7 +105,3 @@ class Server:
                 return render_template('bad_login.html'), 401
 
         return self.app.run(host='localhost', debug=False)
-
-
-server = Server()
-server.create_server()
