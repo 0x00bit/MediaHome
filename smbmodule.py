@@ -1,4 +1,5 @@
 import smbclient
+from smbprotocol import exceptions as ex
 
 
 class SmbConnection:
@@ -20,9 +21,47 @@ class SmbConnection:
         return self.smb.register_session(_server, _user, _passwd)
 
     def list_files(self, folder):
+        self.dirs = []
+        self.files = []
         """List all files on some folder"""
         dirs = self.smb.listdir(f"{self._server}/{folder}")
         if len(dirs) > 0:
-            return dirs
-        else:
-            return None
+            items = self.smb.listdir(f"{self._server}/{folder}")
+            for item in items:
+                try:
+                    self.smb.walk(f"{self._server}/{folder}/{item}")
+                    self.dirs.append(item)
+
+                except ex.SMBOSError as e:
+                    if e.errno == 20: 
+                        self.files.append(item)
+                    else:
+                        raise e
+            return self.dirs, self.files
+
+    def delete_file(self, file_to_del):
+        try:
+            self.smb.remove(file_to_del)
+            return f'File: {file_to_del} was removed'
+
+        except ex.SMBOSError as e:
+            if e.errno == 21:  # Erro 21 means directory
+                self.smb.removedirs(file_to_del)
+                directory = file_to_del.split('/')[-1]  # Get directory name
+                return f'Folder {directory} was removed'
+            else:
+                raise e
+
+        except ex.exceptions.NotFound:
+            return "File not Found"
+
+    def rename_file(self, old_file, new_file):
+        try:
+            self.smb.rename(old_file, new_file)
+            return f'File renamed to {new_file}'
+
+        except ex.SMBOSError as e:
+            raise e
+
+        except ex.NotFound:
+            return "File not found"
