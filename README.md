@@ -2,7 +2,7 @@
 Simple web interface for Samba Servers
 
 ## Installation
-you need to have installed Docker
+you need to have Docker installed 
 
 ```bash
 pip3 install -r requirements.txt
