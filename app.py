@@ -56,11 +56,6 @@ class Server:
                 self.smb_server.path = self.smb_server._user
 
                 try:                  
-                    # Check is the session already exist
-                    if self.smb_server._user in session:
-                        session.pop(self.smb_server._user, None)
-                        print("Removing existing session...")    
-
                     smb_session = self.smb_server.start_conn()
                     if smb_session._connected is True:
                         session[self.smb_server._user] = smb_session.session_key
@@ -110,7 +105,3 @@ class Server:
                 return render_template('bad_login.html'), 401
 
         return self.app.run(host='localhost', debug=False)
-
-
-server = Server()
-server.create_server()
