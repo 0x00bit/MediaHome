@@ -26,8 +26,9 @@ class Server:
             self.smb_server.delete_file(path)
 
         def _rename_file(old_path, new_name):
-            old_file = f'///{self.smb_server._server}/{self.smb_server._user}/{old_path}'
-            new_file = f'///{self.smb_server._server}/{self.smb_server._user}/{new_name}'
+            old_file = f'//{self.smb_server._server}/{self.smb_server._user}/{old_path}'
+            new_file = f'//{self.smb_server._server}/{self.smb_server._user}/{new_name}'
+            print(old_file, new_file)
             self.smb_server.rename_file(old_file, new_file)
 
         def _download_file(filename):
@@ -105,3 +106,7 @@ class Server:
                 return render_template('bad_login.html'), 401
 
         return self.app.run(host='localhost', debug=False)
+
+
+server = Server()
+server.create_server()

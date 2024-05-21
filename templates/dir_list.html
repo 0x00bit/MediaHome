@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% block head %}
+<title>Home</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -29,6 +30,9 @@
   li {
     padding: 10px 0;
     border-bottom: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
   li:last-child {
@@ -41,25 +45,52 @@
     transition: color 0.3s ease;
   }
 
-    a:hover {
-      color: #007bff;
+  a:hover {
+    color: #007bff;
+  }
+
+  /* Estilização dos botões e campo de texto */
+  #delete,
+  #rename {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    padding: 8px 15px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  #delete:hover,
+  #rename:hover {
+    background-color: #0056b3;
+  }
+
+  #rename_field {
+    padding: 6px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    margin-right: 10px;
   }
 </style>
+
 {% endblock %}
 
 {% block body %}
 <div class="container">
-    <h1>Index of /</h1>
-    <ul id="file-list">
-        {% for file in files_dir %}
-        <li>
+  <h1>Index of /</h1>
+  <ul id="file-list">
+      {% for file in files_dir %}
+      <li>
           {{ file }}
-          <button id="delete" onclick="delete_file('{{ file }}')">Delete</button>
-          <input type="text" id="rename_field">
-          <button id="rename" onclick="rename_file('{{ file }}')">Rename</button>
-        </li>
-        {% endfor %}
-    </ul>
+          <div>
+              <input type="text" id="rename_field">
+              <button id="rename" onclick="rename_file('{{ file }}')">Rename</button>
+              <button id="delete" onclick="delete_file('{{ file }}')">Delete</button>
+          </div>
+      </li>
+      {% endfor %}
+  </ul>
 </div>
 
 <script>
