@@ -48,18 +48,19 @@ class Server:
         # Authentication page
         @self.app.route('/login', methods=['GET', 'POST'])
         def login_page():
+
             if request.method == 'POST':
                 self.smb_server._user = request.form['username']
                 self.smb_server._passwd = request.form['password']
                 # The path will receives the username
                 self.smb_server.path = self.smb_server._user
-                
-                try:
+
+                try:                  
                     # Check is the session already exist
                     if self.smb_server._user in session:
                         session.pop(self.smb_server._user, None)
-                        print("Removing existing session...")
-                    
+                        print("Removing existing session...")    
+
                     smb_session = self.smb_server.start_conn()
                     if smb_session._connected is True:
                         session[self.smb_server._user] = smb_session.session_key
@@ -67,6 +68,10 @@ class Server:
 
                 except ex.SMBException:
                     return render_template('bad_login.html'), 401
+                
+                except ex.UserSessionDeleted:
+                    return render_template('bad_login.html'), 401
+
 
             return render_template('login.html')
 
@@ -105,3 +110,7 @@ class Server:
                 return render_template('bad_login.html'), 401
 
         return self.app.run(host='localhost', debug=False)
+
+
+server = Server()
+server.create_server()
