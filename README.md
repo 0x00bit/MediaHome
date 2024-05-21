@@ -1,5 +1,4 @@
-# Foobar
-
+# Mediahome
 Simple web interface for Samba Servers
 
 ## Installation
